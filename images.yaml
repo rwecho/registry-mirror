@@ -13,12 +13,85 @@ images:
 
   - source: docker.io/library/redis:7-alpine
     target: library/redis:7-alpine
+  - source: docker.io/library/redis:7
+    target: library/redis:7
+  - source: docker.io/library/redis:6-alpine
+    target: library/redis:6-alpine
 
   - source: docker.io/library/postgres:16-alpine
     target: library/postgres:16-alpine
+  - source: docker.io/library/postgres:17-alpine
+    target: library/postgres:17-alpine
+  - source: docker.io/library/postgres:15-alpine
+    target: library/postgres:15-alpine
+  - source: docker.io/library/postgres:17
+    target: library/postgres:17
 
   - source: docker.io/library/mysql:8.0
     target: library/mysql:8.0
+  - source: docker.io/library/mysql:8.4
+    target: library/mysql:8.4
+  - source: docker.io/library/mysql:9.2
+    target: library/mysql:9.2
+  - source: docker.io/library/mysql:9
+    target: library/mysql:9
+
+  - source: docker.io/library/mariadb:11
+    target: library/mariadb:11
+  - source: docker.io/library/mariadb:10.11
+    target: library/mariadb:10.11
+
+  - source: docker.io/library/mongo:7
+    target: library/mongo:7
+  - source: docker.io/library/mongo:8
+    target: library/mongo:8
+
+  - source: docker.io/library/rabbitmq:4-alpine
+    target: library/rabbitmq:4-alpine
+  - source: docker.io/library/rabbitmq:3.13-alpine
+    target: library/rabbitmq:3.13-alpine
+
+  - source: docker.io/library/memcached:1-alpine
+    target: library/memcached:1-alpine
+
+  - source: docker.io/library/elasticsearch:8
+    target: library/elasticsearch:8
+
+  - source: docker.io/library/adminer:latest
+    target: library/adminer:latest
+
+  - source: docker.io/library/eclipse-mosquitto:2
+    target: library/eclipse-mosquitto:2
+
+  - source: docker.io/library/telegraf:latest
+    target: library/telegraf:latest
+
+  - source: docker.io/library/influxdb:2
+    target: library/influxdb:2
+
+  - source: docker.io/library/drupal:latest
+    target: library/drupal:latest
+
+  - source: docker.io/library/wordpress:latest
+    target: library/wordpress:latest
+
+  - source: docker.io/library/traefik:v3.3
+    target: library/traefik:v3.3
+
+  - source: docker.io/library/haproxy:lts-alpine
+    target: library/haproxy:lts-alpine
+
+  - source: docker.io/library/caddy:2-alpine
+    target: library/caddy:2-alpine
+
+  - source: docker.io/library/vault:latest
+    target: library/vault:latest
+
+  - source: docker.io/library/consul:latest
+    target: library/consul:latest
+
+  - source: docker.io/library/sqlite:latest
+    target: library/sqlite:latest
 
   - source: docker.io/library/alpine:3.21
     target: library/alpine:3.21
