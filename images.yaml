@@ -107,3 +107,19 @@ images:
 
   - source: quay.io/argoproj/argocli:latest
     target: argoproj/argocli:latest
+
+  # ===== linuxserver.io (*arr suite) =====
+  - source: lscr.io/linuxserver/radarr:latest
+    target: linuxserver/radarr:latest
+
+  - source: lscr.io/linuxserver/sonarr:latest
+    target: linuxserver/sonarr:latest
+
+  - source: lscr.io/linuxserver/lidarr:latest
+    target: linuxserver/lidarr:latest
+
+  - source: lscr.io/linuxserver/readarr:latest
+    target: linuxserver/readarr:latest
+
+  - source: lscr.io/linuxserver/jackett:latest
+    target: linuxserver/jackett:latest
