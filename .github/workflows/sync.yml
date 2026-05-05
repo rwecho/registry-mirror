@@ -1,0 +1,93 @@
+name: Registry Mirror Sync
+
+on:
+  schedule:
+    # Weekly sync: every Sunday at 2:00 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      images:
+        description: 'Specific images to sync (comma-separated, leave empty for all)'
+        required: false
+        type: string
+        default: ''
+  push:
+    paths:
+      - images.yaml
+    branches:
+      - main
+      - master
+
+env:
+  TARGET_REGISTRY: registry.myhome.rwecho.top
+
+jobs:
+  sync:
+    name: Sync Images
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install yq (YAML processor)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq skopeo jq
+
+      - name: Verify tools
+        run: |
+          skopeo --version
+          yq --version 2>/dev/null || python3 --version
+
+      - name: Login to target registry
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: |
+          if [ -n "$REGISTRY_USERNAME" ] && [ -n "$REGISTRY_PASSWORD" ]; then
+            echo "$REGISTRY_PASSWORD" | skopeo login \
+              --username "$REGISTRY_USERNAME" \
+              --password-stdin \
+              "${{ env.TARGET_REGISTRY }}"
+            echo "::notice::Login to ${{ env.TARGET_REGISTRY }} successful"
+          else
+            echo "::warning::REGISTRY_USERNAME or REGISTRY_PASSWORD not set"
+          fi
+
+      - name: Run sync script
+        id: sync
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+        run: |
+          chmod +x scripts/sync.sh
+          if [ -z "${{ github.event.inputs.images }}" ]; then
+            ./scripts/sync.sh
+          else
+            # Filter specific images: use yq/python to extract specific entries
+            python3 -c "
+import yaml
+import sys
+with open('images.yaml') as f:
+    config = yaml.safe_load(f)
+images_requested = '${{ github.event.inputs.images }}'.split(',')
+images_requested = [i.strip() for i in images_requested]
+registry = config['registry']
+filtered = {'registry': registry, 'images': []}
+for img in config['images']:
+    src = img.get('source', '')
+    if any(req in src for req in images_requested):
+        filtered['images'].append(img)
+with open('images_filtered.yaml', 'w') as f:
+    yaml.dump(filtered, f)
+print(f'Filtered {len(filtered[\"images\"])} images from request')
+"
+            ./scripts/sync.sh images_filtered.yaml
+          fi
+
+      - name: Send notification on failure
+        if: failure()
+        run: |
+          echo "::error::Sync workflow failed. Check the logs for details."

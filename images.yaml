@@ -1,0 +1,109 @@
+# Registry Mirror Configuration
+# All images listed here will be synced to the target registry.
+
+registry: registry.myhome.rwecho.top
+
+images:
+  # ===== Docker Hub Official Images =====
+  - source: docker.io/library/nginx:stable-alpine
+    target: library/nginx:stable-alpine
+  - source: docker.io/library/nginx:stable-alpine3.21-slim
+    target: library/nginx:stable-alpine3.21-slim
+
+  - source: docker.io/library/redis:7-alpine
+    target: library/redis:7-alpine
+
+  - source: docker.io/library/postgres:16-alpine
+    target: library/postgres:16-alpine
+
+  - source: docker.io/library/mysql:8.0
+    target: library/mysql:8.0
+
+  - source: docker.io/library/mariadb:11-lts
+    target: library/mariadb:11-lts
+
+  - source: docker.io/library/alpine:3.21
+    target: library/alpine:3.21
+
+  - source: docker.io/library/ubuntu:24.04
+    target: library/ubuntu:24.04
+
+  - source: docker.io/library/python:3.13-slim
+    target: library/python:3.13-slim
+
+  - source: docker.io/library/node:22-alpine
+    target: library/node:22-alpine
+
+  - source: docker.io/library/golang:1.24-alpine
+    target: library/golang:1.24-alpine
+
+  # ===== Docker Hub Popular Projects =====
+  - source: docker.io/grafana/grafana:latest
+    target: grafana/grafana:latest
+
+  - source: docker.io/prom/prometheus:latest
+    target: prom/prometheus:latest
+
+  - source: docker.io/prom/alertmanager:latest
+    target: prom/alertmanager:latest
+
+  - source: docker.io/portainer/portainer-ce:latest
+    target: portainer/portainer-ce:latest
+
+  - source: docker.io/jenkins/jenkins:lts-jdk17
+    target: jenkins/jenkins:lts-jdk17
+
+  - source: docker.io/nextcloud:stable
+    target: nextcloud:stable
+
+  - source: docker.io/bitnami/redis:latest
+    target: bitnami/redis:latest
+
+  - source: docker.io/bitnami/postgresql:latest
+    target: bitnami/postgresql:latest
+
+  # ===== Kubernetes / CNCF Ecosystem =====
+  - source: registry.k8s.io/kube-apiserver:v1.32.0
+    target: k8s/kube-apiserver:v1.32.0
+  - source: registry.k8s.io/kube-controller-manager:v1.32.0
+    target: k8s/kube-controller-manager:v1.32.0
+  - source: registry.k8s.io/kube-scheduler:v1.32.0
+    target: k8s/kube-scheduler:v1.32.0
+  - source: registry.k8s.io/kube-proxy:v1.32.0
+    target: k8s/kube-proxy:v1.32.0
+  - source: registry.k8s.io/coredns/coredns:v1.12.0
+    target: k8s/coredns:v1.12.0
+  - source: registry.k8s.io/etcd:3.5.17-0
+    target: k8s/etcd:3.5.17-0
+  - source: registry.k8s.io/pause:3.10
+    target: k8s/pause:3.10
+
+  - source: registry.k8s.io/ingress-nginx/controller:v1.12.0
+    target: k8s/ingress-nginx-controller:v1.12.0
+
+  - source: registry.k8s.io/metrics-server/metrics-server:v0.7.2
+    target: k8s/metrics-server:v0.7.2
+
+  # ===== Docker Hub AI/ML Images =====
+  - source: docker.io/pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
+    target: pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
+
+  - source: docker.io/tensorflow/tensorflow:2.18.0-gpu
+    target: tensorflow/tensorflow:2.18.0-gpu
+
+  # ===== GitHub Container Registry =====
+  - source: ghcr.io/actions/actions-runner:latest
+    target: ghcr/actions-runner:latest
+
+  # ===== Quay.io =====
+  - source: quay.io/prometheus/node-exporter:latest
+    target: prometheus/node-exporter:latest
+
+  - source: quay.io/prometheus/alertmanager:latest
+    target: prometheus/alertmanager:latest
+
+  - source: quay.io/argoproj/argo-cd:latest
+    target: argoproj/argo-cd:latest
+
+  - source: quay.io/argoproj/argocli:latest
+    target: argoproj/argocli:latest
