@@ -30,19 +30,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install skopeo
+      - name: Install dependencies
         run: |
-          if ! command -v skopeo &>/dev/null; then
-            if command -v apt-get &>/dev/null; then
-              sudo apt-get update -qq
-              sudo apt-get install -y -qq skopeo
-            elif command -v apk &>/dev/null; then
-              apk add --no-cache skopeo
-            else
-              echo "::error::Please install skopeo manually"
-              exit 1
-            fi
-          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq skopeo
+          pip install pyyaml --quiet
 
       - name: Verify tools
         run: |
