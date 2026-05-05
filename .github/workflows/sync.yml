@@ -18,7 +18,7 @@ on:
       - main
 
 env:
-  TARGET_REGISTRY: myhome.rwecho.top:8500
+  TARGET_REGISTRY: registry.myhome.rwecho.top:8500
 
 jobs:
   sync:

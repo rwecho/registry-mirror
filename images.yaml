@@ -2,7 +2,7 @@
 # All images listed here will be synced to the target registry.
 
 # Last updated: 2026-05-05
-registry: myhome.rwecho.top:8500
+registry: registry.myhome.rwecho.top:8500
 
 images:
   # ===== Docker Hub Official Images =====
