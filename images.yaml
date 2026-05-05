@@ -20,9 +20,6 @@ images:
   - source: docker.io/library/mysql:8.0
     target: library/mysql:8.0
 
-  - source: docker.io/library/mariadb:11-lts
-    target: library/mariadb:11-lts
-
   - source: docker.io/library/alpine:3.21
     target: library/alpine:3.21
 
@@ -103,9 +100,6 @@ images:
   - source: quay.io/prometheus/alertmanager:latest
     target: prometheus/alertmanager:latest
 
-  - source: quay.io/argoproj/argo-cd:latest
-    target: argoproj/argo-cd:latest
-
   - source: quay.io/argoproj/argocli:latest
     target: argoproj/argocli:latest
 
@@ -118,9 +112,6 @@ images:
 
   - source: lscr.io/linuxserver/lidarr:latest
     target: linuxserver/lidarr:latest
-
-  - source: lscr.io/linuxserver/readarr:latest
-    target: linuxserver/readarr:latest
 
   - source: lscr.io/linuxserver/jackett:latest
     target: linuxserver/jackett:latest
