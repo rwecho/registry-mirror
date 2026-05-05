@@ -59,7 +59,7 @@ jobs:
       - name: Run sync script
         id: sync
         env:
-          TARGET_REGISTRY: https://${{ env.TARGET_REGISTRY }}
+          TARGET_REGISTRY: ${{ env.TARGET_REGISTRY }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
         run: |
