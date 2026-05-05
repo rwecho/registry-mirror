@@ -23,8 +23,7 @@ env:
 jobs:
   sync:
     name: Sync Images
-    # Self-hosted runner on nas-ruan with IPv4/IPv6 access
-    runs-on: [self-hosted, registry-mirror]
+    runs-on: ubuntu-latest
     timeout-minutes: 120
 
     steps:
