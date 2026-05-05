@@ -67,21 +67,7 @@ jobs:
           if [ -z "${{ github.event.inputs.images }}" ]; then
             ./scripts/sync.sh
           else
-            python3 -c "
-import yaml
-with open('images.yaml') as f:
-    config = yaml.safe_load(f)
-images_requested = '${{ github.event.inputs.images }}'.split(',')
-images_requested = [i.strip() for i in images_requested]
-filtered = {'registry': config['registry'], 'images': []}
-for img in config['images']:
-    src = img.get('source', '')
-    if any(req in src for req in images_requested):
-        filtered['images'].append(img)
-with open('images_filtered.yaml', 'w') as f:
-    yaml.dump(filtered, f)
-print(f'Filtered {len(filtered[\"images\"])} images')
-"
+            IMAGES_REQUESTED="${{ github.event.inputs.images }}" python3 scripts/filter_images.py
             ./scripts/sync.sh images_filtered.yaml
           fi
 
