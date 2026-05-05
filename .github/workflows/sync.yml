@@ -16,7 +16,6 @@ on:
       - images.yaml
     branches:
       - main
-      - master
 
 env:
   TARGET_REGISTRY: registry.myhome.rwecho.top
@@ -24,22 +23,28 @@ env:
 jobs:
   sync:
     name: Sync Images
-    runs-on: ubuntu-latest
+    # NOTE: Target registry (registry.myhome.rwecho.top) only supports IPv6.
+    # GitHub hosted runners don't have IPv6 access, so you MUST use a
+    # self-hosted runner on an IPv6-enabled machine.
+    # Setup: https://docs.github.com/en/actions/hosting-your-own-runners
+    runs-on: [self-hosted, registry-mirror]
     timeout-minutes: 120
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install yq (YAML processor)
+      - name: Install skopeo
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq skopeo jq
+          if ! command -v skopeo &>/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq skopeo
+          fi
 
       - name: Verify tools
         run: |
           skopeo --version
-          yq --version 2>/dev/null || python3 --version
+          python3 --version
 
       - name: Login to target registry
         env:
