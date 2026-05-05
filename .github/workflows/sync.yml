@@ -18,14 +18,12 @@ on:
       - main
 
 env:
-  TARGET_REGISTRY: registry.myhome.rwecho.top
+  TARGET_REGISTRY: myhome.rwecho.top:8500
 
 jobs:
   sync:
     name: Sync Images
-    # NOTE: Target registry only supports IPv6 externally.
-    # Self-hosted runner on nas-ruan pushes via localhost:8500 (IPv4).
-    # GitHub hosted runners need IPv6 access (not supported).
+    # Self-hosted runner on nas-ruan with IPv4/IPv6 access
     runs-on: [self-hosted, registry-mirror]
     timeout-minutes: 120
 
@@ -42,7 +40,7 @@ jobs:
             elif command -v apk &>/dev/null; then
               apk add --no-cache skopeo
             else
-              echo "::error::Cannot install skopeo - please install it manually"
+              echo "::error::Please install skopeo manually"
               exit 1
             fi
           fi
@@ -52,22 +50,7 @@ jobs:
           skopeo --version
           python3 --version
 
-      - name: Set registry URL
-        id: registry
-        run: |
-          # Use localhost:8500 on self-hosted runner (NAS), HTTPS for external
-          if curl -sf -o /dev/null http://localhost:8500/v2/ 2>/dev/null; then
-            echo "url=http://localhost:8500" >> $GITHUB_OUTPUT
-            echo "no_tls=true" >> $GITHUB_OUTPUT
-            echo "::notice::Using local registry at http://localhost:8500"
-          else
-            echo "url=https://${{ env.TARGET_REGISTRY }}" >> $GITHUB_OUTPUT
-            echo "no_tls=false" >> $GITHUB_OUTPUT
-            echo "::notice::Using remote registry at https://${{ env.TARGET_REGISTRY }}"
-          fi
-
       - name: Login to target registry
-        if: steps.registry.outputs.url != 'http://localhost:8500'
         env:
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
@@ -76,8 +59,8 @@ jobs:
             echo "$REGISTRY_PASSWORD" | skopeo login \
               --username "$REGISTRY_USERNAME" \
               --password-stdin \
-              "${{ steps.registry.outputs.url }}"
-            echo "::notice::Login successful"
+              "${{ env.TARGET_REGISTRY }}"
+            echo "::notice::Login to ${{ env.TARGET_REGISTRY }} successful"
           else
             echo "::warning::REGISTRY_USERNAME or REGISTRY_PASSWORD not set"
           fi
@@ -85,8 +68,7 @@ jobs:
       - name: Run sync script
         id: sync
         env:
-          TARGET_REGISTRY: ${{ steps.registry.outputs.url }}
-          NO_TLS_VERIFY: ${{ steps.registry.outputs.no_tls }}
+          TARGET_REGISTRY: https://${{ env.TARGET_REGISTRY }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
         run: |

@@ -1,7 +1,7 @@
 # Registry Mirror Configuration
 # All images listed here will be synced to the target registry.
 
-registry: registry.myhome.rwecho.top
+registry: myhome.rwecho.top:8500
 
 images:
   # ===== Docker Hub Official Images =====
