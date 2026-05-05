@@ -23,10 +23,9 @@ env:
 jobs:
   sync:
     name: Sync Images
-    # NOTE: Target registry (registry.myhome.rwecho.top) only supports IPv6.
-    # GitHub hosted runners don't have IPv6 access, so you MUST use a
-    # self-hosted runner on an IPv6-enabled machine.
-    # Setup: https://docs.github.com/en/actions/hosting-your-own-runners
+    # NOTE: Target registry only supports IPv6 externally.
+    # Self-hosted runner on nas-ruan pushes via localhost:8500 (IPv4).
+    # GitHub hosted runners need IPv6 access (not supported).
     runs-on: [self-hosted, registry-mirror]
     timeout-minutes: 120
 
@@ -37,8 +36,15 @@ jobs:
       - name: Install skopeo
         run: |
           if ! command -v skopeo &>/dev/null; then
-            sudo apt-get update -qq
-            sudo apt-get install -y -qq skopeo
+            if command -v apt-get &>/dev/null; then
+              sudo apt-get update -qq
+              sudo apt-get install -y -qq skopeo
+            elif command -v apk &>/dev/null; then
+              apk add --no-cache skopeo
+            else
+              echo "::error::Cannot install skopeo - please install it manually"
+              exit 1
+            fi
           fi
 
       - name: Verify tools
@@ -46,7 +52,22 @@ jobs:
           skopeo --version
           python3 --version
 
+      - name: Set registry URL
+        id: registry
+        run: |
+          # Use localhost:8500 on self-hosted runner (NAS), HTTPS for external
+          if curl -sf -o /dev/null http://localhost:8500/v2/ 2>/dev/null; then
+            echo "url=http://localhost:8500" >> $GITHUB_OUTPUT
+            echo "no_tls=true" >> $GITHUB_OUTPUT
+            echo "::notice::Using local registry at http://localhost:8500"
+          else
+            echo "url=https://${{ env.TARGET_REGISTRY }}" >> $GITHUB_OUTPUT
+            echo "no_tls=false" >> $GITHUB_OUTPUT
+            echo "::notice::Using remote registry at https://${{ env.TARGET_REGISTRY }}"
+          fi
+
       - name: Login to target registry
+        if: steps.registry.outputs.url != 'http://localhost:8500'
         env:
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
@@ -55,8 +76,8 @@ jobs:
             echo "$REGISTRY_PASSWORD" | skopeo login \
               --username "$REGISTRY_USERNAME" \
               --password-stdin \
-              "${{ env.TARGET_REGISTRY }}"
-            echo "::notice::Login to ${{ env.TARGET_REGISTRY }} successful"
+              "${{ steps.registry.outputs.url }}"
+            echo "::notice::Login successful"
           else
             echo "::warning::REGISTRY_USERNAME or REGISTRY_PASSWORD not set"
           fi
@@ -64,6 +85,8 @@ jobs:
       - name: Run sync script
         id: sync
         env:
+          TARGET_REGISTRY: ${{ steps.registry.outputs.url }}
+          NO_TLS_VERIFY: ${{ steps.registry.outputs.no_tls }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
         run: |
@@ -71,23 +94,20 @@ jobs:
           if [ -z "${{ github.event.inputs.images }}" ]; then
             ./scripts/sync.sh
           else
-            # Filter specific images: use yq/python to extract specific entries
             python3 -c "
 import yaml
-import sys
 with open('images.yaml') as f:
     config = yaml.safe_load(f)
 images_requested = '${{ github.event.inputs.images }}'.split(',')
 images_requested = [i.strip() for i in images_requested]
-registry = config['registry']
-filtered = {'registry': registry, 'images': []}
+filtered = {'registry': config['registry'], 'images': []}
 for img in config['images']:
     src = img.get('source', '')
     if any(req in src for req in images_requested):
         filtered['images'].append(img)
 with open('images_filtered.yaml', 'w') as f:
     yaml.dump(filtered, f)
-print(f'Filtered {len(filtered[\"images\"])} images from request')
+print(f'Filtered {len(filtered[\"images\"])} images')
 "
             ./scripts/sync.sh images_filtered.yaml
           fi

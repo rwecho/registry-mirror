@@ -12,7 +12,9 @@ set -euo pipefail
 CONFIG_FILE="${1:-images.yaml}"
 REGISTRY_USERNAME="${REGISTRY_USERNAME:-}"
 REGISTRY_PASSWORD="${REGISTRY_PASSWORD:-}"
-TARGET_REGISTRY=""
+# Allow overriding target registry via environment (useful for local runner)
+TARGET_REGISTRY="${TARGET_REGISTRY:-}"
+NO_TLS_VERIFY="${NO_TLS_VERIFY:-false}"
 
 # --- Colors ------------------------------------------------------------------
 GREEN='\033[0;32m'
@@ -92,7 +94,15 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 CONFIG_OUTPUT=$(parse_config "$CONFIG_FILE")
-TARGET_REGISTRY=$(echo "$CONFIG_OUTPUT" | head -1)
+CONFIG_REGISTRY=$(echo "$CONFIG_OUTPUT" | head -1)
+
+# Use env override if set, otherwise use config file value
+if [ -n "$TARGET_REGISTRY" ]; then
+    log_info "Using TARGET_REGISTRY from environment: ${TARGET_REGISTRY}"
+    TARGET_REGISTRY="${TARGET_REGISTRY}"
+else
+    TARGET_REGISTRY="${CONFIG_REGISTRY}"
+fi
 
 if [ -z "$TARGET_REGISTRY" ]; then
     log_err "Failed to parse config or no registry specified."
@@ -159,9 +169,13 @@ for entry in "${IMAGE_ENTRIES[@]}"; do
 
     # Sync the image
     log_info "Syncing..."
+    SKOPEO_OPTS="--all --retry-times 3"
+    # For HTTP (non-HTTPS) registries, skip TLS verification
+    if [ "$NO_TLS_VERIFY" = "true" ] || [[ "$target_image" == http://* ]]; then
+        SKOPEO_OPTS="$SKOPEO_OPTS --dest-tls-verify=false"
+    fi
     if skopeo copy \
-        --all \
-        --retry-times 3 \
+        $SKOPEO_OPTS \
         ${AUTH_OPTION:+--authfile /tmp/.skopeo_auth} \
         "docker://${source_image}" \
         "docker://${target_image}"; then
