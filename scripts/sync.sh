@@ -174,11 +174,31 @@ for entry in "${IMAGE_ENTRIES[@]}"; do
     if [ "$NO_TLS_VERIFY" = "true" ] || [[ "$target_image" == http://* ]]; then
         SKOPEO_OPTS="$SKOPEO_OPTS --dest-tls-verify=false"
     fi
-    if skopeo copy \
-        $SKOPEO_OPTS \
-        ${AUTH_OPTION:+--authfile /tmp/.skopeo_auth} \
-        "docker://${source_image}" \
-        "docker://${target_image}"; then
+    sync_success=false
+    set +e
+    for retry_round in 0 1 2 3; do
+        if [ $retry_round -gt 0 ]; then
+            log_info "Connection lost — retry ${retry_round}/3 in 30s..."
+            sleep 30
+        fi
+        skopeo copy \
+            $SKOPEO_OPTS \
+            ${AUTH_OPTION:+--authfile /tmp/.skopeo_auth} \
+            "docker://${source_image}" \
+            "docker://${target_image}" 2>/tmp/skopeo_err.$$
+        exit_code=$?
+        if [ $exit_code -eq 0 ]; then
+            sync_success=true
+            break
+        fi
+        err_output=$(cat /tmp/skopeo_err.$$)
+        if ! echo "$err_output" | grep -qiE "(connection refused|connection timed out|i/o timeout|dial tcp|write tcp)"; then
+            log_err "Non-connection error — not retrying"
+            break
+        fi
+    done
+    set -e
+    if [ "$sync_success" = true ]; then
         log_ok "Sync completed"
         SYNCED=$((SYNCED + 1))
     else
